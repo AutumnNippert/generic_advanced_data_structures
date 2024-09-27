@@ -2,7 +2,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <assert.h>
 #include <string.h>
 
@@ -22,25 +21,17 @@ void print_stack(stack_t* stack){
     printf("]\n");
 }
 
-stack_t* stack_create(size_t type_size, equals_t equals, type_check_t type_check, free_t free){
+stack_t* stack_create(size_t type_size, free_t free){
         stack_t* new = calloc(1, sizeof(stack_t));
         new->size = 0;
         new->type_size = type_size;
-        new->equals_func = equals;
-        new->type_check_func = type_check;
         new->free_func = free;
         return new;
 }
 
-void* clone(void* val, size_t type_size){
-    void* new = calloc(1, type_size);
-    memcpy(new, val, type_size);
-    return new;
-}
-
 void stack_push(stack_t* stack, void* val){
     stack_node_t* new = calloc(1, sizeof(stack_node_t));
-    new->val = clone(val, stack->type_size);
+    new->val = val, stack->type_size;
     new->type_size = stack->type_size;
     new->next = stack->head;
     stack->head = new;

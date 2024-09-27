@@ -4,12 +4,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <assert.h>
-
-typedef int (*equals_t)(void*, void*);
-typedef int (*compare_t)(void*, void*);
-typedef int (*type_check_t)(void*);
-typedef int (*hash_t)(void*);
-typedef void (*free_t)(void*);
+#include "prim_functions.h"
 
 typedef struct linked_list_node{
     void* val;
@@ -23,28 +18,23 @@ typedef struct linked_list{
     linked_list_node_t* head;
     linked_list_node_t* tail;
     size_t type_size;
-    equals_t equals_func;
-    type_check_t type_check_func;
+    compare_t compare_func;
     free_t free_func;
 } linked_list_t;
 
-linked_list_t* linked_list_create(size_t type_size, equals_t, type_check_t, free_t );
+linked_list_t* linked_list_create(size_t type_size, free_t);
 
-void linked_list_add_sorted(linked_list_t* linked_list, void* val, compare_t compare);
-void linked_list_sort(linked_list_t* linked_list, compare_t compare);
+void linked_list_add(linked_list_t*, void*);
+void linked_list_add_sorted(linked_list_t*, void*, compare_t);
+int linked_list_add_if_not_contains(linked_list_t*, void*, compare_t);
 
-void linked_list_add(linked_list_t* linked_list, void* val);
-int linked_list_add_if_not_contains(linked_list_t* linked_list, void* val);
+void* linked_list_get(linked_list_t*, size_t);
+void linked_list_remove(linked_list_t*, void*, compare_t);
 
-void* linked_list_get_index(linked_list_t* linked_list, size_t index);
-void* linked_list_get(linked_list_t* linked_list, void* val);
+void linked_list_sort(linked_list_t*, compare_t);
 
-void linked_list_free(linked_list_t* linked_list);
+void linked_list_free(linked_list_t*);
 
-int linked_list_hash(linked_list_t* linked_list, void* val);
-
-bool linked_list_contains(linked_list_t* linked_list, void* val);
-
-void linked_list_remove(linked_list_t* linked_list, void* val);
+int linked_list_contains(linked_list_t*, void*, compare_t);
 
 void print_stats();
