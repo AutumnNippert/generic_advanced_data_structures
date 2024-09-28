@@ -37,9 +37,7 @@ void stack_push(stack_t* stack, void* val){
     stack->head = new;
     stack->size++;
     stack->stats.pushes++;
-    printf("Adding to stack %d\n", *(int*)val);
-    printf("Current Stack: ");
-    print_stack(stack);
+    // print_stack(stack);
 }
 
 void* stack_pop(stack_t* stack){
@@ -47,15 +45,13 @@ void* stack_pop(stack_t* stack){
         return NULL;
     }
 
-    print_stack(stack);
+    // print_stack(stack);
 
     stack_node_t* temp = stack->head;
     stack->head = stack->head->next;
     stack->size--;
     void* val = temp->val;
     free(temp);
-
-    printf("Removing from stack %d\n", *(int*)val);
 
     stack->stats.pops++;
     return val;
@@ -75,7 +71,11 @@ void stack_free(stack_t* stack){
     while(curr != NULL){
         stack_node_t* temp = curr;
         curr = curr->next;
-        free(temp->val);
+        if(stack->free_func != NULL){
+            stack->free_func(temp->val);
+        }else{
+            free(temp->val);
+        }
         free(temp);
     }
     free(stack);
