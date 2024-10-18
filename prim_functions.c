@@ -45,3 +45,7 @@ int compare_double(void* a, void* b){
     }
     return 1;
 }
+
+int compare_string(void* a, void* b){
+    return strcmp((char*)a, (char*)b);
+}
