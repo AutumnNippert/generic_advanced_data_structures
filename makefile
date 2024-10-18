@@ -9,8 +9,11 @@ linked_list.o: linked_list.c linked_list.h
 stack.o: stack.c stack.h
 	$(CC) $(CFLAGS) -c stack.c -o stack.o
 
-tests: tests.c linked_list.o stack.o
-	$(CC) $(CFLAGS) tests.c linked_list.o stack.o -o tests
+heap.o: heap.c heap.h
+	$(CC) $(CFLAGS) -c heap.c -o heap.o
+
+tests: tests.c linked_list.o stack.o heap.o
+	$(CC) $(CFLAGS) tests.c linked_list.o stack.o heap.o -o tests
 
 clean:
 	rm *.o linked_list stack tests

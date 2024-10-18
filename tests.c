@@ -4,6 +4,7 @@
 
 #include "linked_list.h"
 #include "stack.h"
+#include "heap.h"
 // void linked_list_test(){
 //         // create a compare function for int
 //     int compare_int(void* a, void* b){
@@ -75,8 +76,29 @@ void stack_test(){
     stack_free(stack);
 }
 
+void min_heap_test(){
+    int min_compre_int(void* a, void* b){
+        return *(int*)a - *(int*)b;
+    }
+
+    void free_int(void* a){
+        free(a);
+    }
+
+    heap_t* heap = heap_create(sizeof(int), min_compre_int, free_int);
+    int arr[10] = {5, 3, 7, 1, 2, 9, 4, 6, 8, 0};
+    for (int i = 0; i < 10; i++){ // O(nlog(n))
+        heap_push(heap, (void*)&arr[i]);
+    }
+    for (int i = 0; i < 10; i++){ // O(nlog(n))
+        printf("%d\n", *(int*)heap_pop(heap));
+    }
+    heap_free(heap);
+}
+
 int main(){
     // linked_list_test();
     stack_test();
+    min_heap_test();
     return 0;
 }
