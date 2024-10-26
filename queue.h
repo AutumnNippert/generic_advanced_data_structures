@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "prim_functions.h"
+#include "primitives.h"
 
 typedef struct queue_node{
     void* val;

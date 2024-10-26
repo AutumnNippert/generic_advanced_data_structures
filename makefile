@@ -15,8 +15,14 @@ queue.o: queue.c queue.h
 heap.o: heap.c heap.h
 	$(CC) $(CFLAGS) -c heap.c -o heap.o
 
-tests: tests.c linked_list.o stack.o queue.o heap.o
-	$(CC) $(CFLAGS) tests.c linked_list.o stack.o queue.o heap.o -o tests
+dsa.o: dsa.c dsa.h
+	$(CC) $(CFLAGS) -c dsa.c -o dsa.o
+
+primitives.o : primitives.c primitives.h
+	$(CC) $(CFLAGS) -c primitives.c -o primitives.o
+
+tests: tests.c linked_list.o stack.o queue.o heap.o dsa.o primitives.o
+	$(CC) $(CFLAGS) tests.c linked_list.o stack.o queue.o heap.o dsa.o primitives.o -o tests
 
 clean:
-	rm *.o linked_list stack queue tests vgcore.*
+	rm *.o tests vgcore.*

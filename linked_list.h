@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <assert.h>
-#include "prim_functions.h"
+#include "primitives.h"
 
 typedef struct linked_list_node{
     void* val;

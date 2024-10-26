@@ -1,126 +1,153 @@
+/*
+typedef struct heap{
+    size_t type_size;
+    compare_t compare;
+    free_t free;
+    dsa_t* arr;
+    size_t size;
+    size_t capacity;
+}heap_t;
+
+heap_t* heap_create(size_t type_size, compare_t compare, free_t free);
+heap_t* heapify(size_t type_size, compare_t compare, free_t free, dsa_t* arr, size_t size);
+void heap_push(heap_t* heap, void* val);
+void* heap_peek(heap_t* heap);
+void* heap_pop(heap_t* heap);
+
+void heap_free(heap_t* heap);
+*/
+
 #include "heap.h"
 
 heap_t* heap_create(size_t type_size, compare_t compare, free_t free){
-    heap_t* new = calloc(1, sizeof(heap_t));
-    new->size = 0;
-    new->type_size = type_size;
-    new->compare_func = compare;
-    new->free_func = free;
-    return new;
+    heap_t* heap = malloc(sizeof(heap_t));
+    heap->type_size = type_size;
+    heap->compare = compare;
+    heap->free = free;
+    heap->arr = dsa_create(type_size, compare, free);
+    heap->size = 0;
+    heap->capacity = 0;
+    return heap;
 }
 
-static heap_node_t* heap_node_create(void* val){
-    heap_node_t* new = calloc(1, sizeof(heap_node_t));
-    new->val = val;
-    new->parent = NULL;
-    new->left = NULL;
-    new->right = NULL;
-    return new;
+static size_t get_left_child(size_t index){
+    return 2 * index + 1;
 }
 
-static void heap_increase_key(heap_t* heap, heap_node_t* node, void* val){
-    if(heap->compare_func(node->val, val) >= 0){
-        return;
-    }
-    node->val = val;
-    while(node != heap->root && heap->compare_func(node->val, node->parent->val) > 0){
-        void* temp = node->val;
-        node->val = node->parent->val;
-        node->parent->val = temp;
-        node = node->parent;
+static size_t get_right_child(size_t index){
+    return 2 * index + 2;
+}
+
+static size_t get_parent(size_t index){
+    return (index - 1) / 2;
+}
+
+static void swap(heap_t* heap, size_t index1, size_t index2){
+    void* temp = dsa_get(heap->arr, index1);
+    dsa_set(heap->arr, dsa_get(heap->arr, index2), index1);
+    dsa_set(heap->arr, temp, index2);
+}
+
+static void increase_key(heap_t* heap, size_t index, void* val){
+    dsa_set(heap->arr, val, index);
+    while (index > 0 && heap->compare(dsa_get(heap->arr, get_parent(index)), dsa_get(heap->arr, index)) < 0){
+        swap(heap, index, get_parent(index));
+        index = get_parent(index);
     }
 }
 
-static void heap_extract(heap_t* heap, heap_node_t* node){
-    if(node->left == NULL && node->right == NULL){
-        if(node == heap->root){
-            heap->root = NULL;
-            return;
+static void decrease_key(heap_t* heap, size_t index, void* val){
+    dsa_set(heap->arr, val, index);
+    while (get_left_child(index) < heap->size){
+        size_t largest = index;
+        size_t left = get_left_child(index);
+        size_t right = get_right_child(index);
+        if (left < heap->size && heap->compare(dsa_get(heap->arr, left), dsa_get(heap->arr, largest)) > 0){
+            largest = left;
         }
-        if(node->parent->left == node){
-            node->parent->left = NULL;
+        if (right < heap->size && heap->compare(dsa_get(heap->arr, right), dsa_get(heap->arr, largest)) > 0){
+            largest = right;
         }
-        else{
-            node->parent->right = NULL;
+        if (largest == index){
+            break;
         }
-        return;
+        swap(heap, index, largest);
+        index = largest;
     }
-    if(node->left == NULL){
-        heap_extract(heap, node->right);
-        return;
+}
+
+heap_t* heapify(size_t type_size, compare_t compare, free_t free, dsa_t* arr, size_t size){
+    /*
+        Check if the left child exists.
+        If the left child exists and is greater than the current largest node, mark it as largest.
+        Check if the right child exists.
+        If the right child exists and is greater than the current largest node, mark it as largest
+        If the largest node is not the root node, swap the root node with the largest node using the swap function.
+        Apply heapify operation to the affected subtree.
+     */
+    heap_t* heap = malloc(sizeof(heap_t));
+    heap->type_size = type_size;
+    heap->compare = compare;
+    heap->free = free;
+    heap->arr = arr;
+    heap->size = size;
+    heap->capacity = size;
+    for (int i = size / 2; i >= 0; i--){
+        size_t largest = i;
+        size_t left = get_left_child(i);
+        size_t right = get_right_child(i);
+        if (left < size && compare(dsa_get(arr, left), dsa_get(arr, largest)) > 0){
+            largest = left;
+        }
+        if (right < size && compare(dsa_get(arr, right), dsa_get(arr, largest)) > 0){
+            largest = right;
+        }
+        if (largest != i){
+            swap(heap, i, largest);
+        }
     }
-    if(node->right == NULL){
-        heap_extract(heap, node->left);
-        return;
-    }
-    if(heap->compare_func(node->left->val, node->right->val) > 0){
-        heap_extract(heap, node->left);
-    }
-    else{
-        heap_extract(heap, node->right);
-    }
+    return heap;
 }
 
 void heap_push(heap_t* heap, void* val){
-    heap_node_t* new = heap_node_create(val);
+    if (heap->size == heap->capacity){
+        dsa_append(heap->arr, val);
+        heap->capacity++;
+    } else{
+        dsa_set(heap->arr, val, heap->size);
+    }
+    increase_key(heap, heap->size, val);
     heap->size++;
-    if(heap->root == NULL){
-        heap->root = new;
-        return;
-    }
-    heap_node_t* curr = heap->root;
-    size_t size = heap->size;
-    while(size > 1){
-        if(size % 2 == 0){
-            if(curr->left == NULL){
-                curr->left = new;
-                new->parent = curr;
-                heap_increase_key(heap, new, val);
-                return;
-            }
-            curr = curr->left;
-        }
-        else{
-            if(curr->right == NULL){
-                curr->right = new;
-                new->parent = curr;
-                heap_increase_key(heap, new, val);
-                return;
-            }
-            curr = curr->right;
-        }
-        size /= 2;
-    }
 }
 
 void* heap_peek(heap_t* heap){
-    return heap->root->val;
+    if (heap->size == 0){
+        return NULL;
+    }
+    return dsa_get(heap->arr, 0);
 }
 
 void* heap_pop(heap_t* heap){
-    void* val = heap->root->val;
-    heap_node_t* last = heap->root;
+    if (heap->size == 0){
+        return NULL;
+    }
+    void* max = dsa_get(heap->arr, 0);
+    dsa_set(heap->arr, dsa_get(heap->arr, heap->size - 1), 0);
     heap->size--;
-    if(heap->size == 0){
-        heap->root = NULL;
-        return val;
-    }
-    heap_node_t* curr = heap->root;
-    size_t size = heap->size;
-    while(size > 1){
-        if(size % 2 == 0){
-            curr = curr->left;
-        }
-        else{
-            curr = curr->right;
-        }
-        size /= 2;
-    }
-    heap->root->val = curr->val;
-    heap_extract(heap, curr);
-    return val;
+    decrease_key(heap, 0, dsa_get(heap->arr, 0));
+    return max;
 }
 
 void heap_free(heap_t* heap){
+    if (heap->free != NULL){
+        for (int i = 0; i < heap->size; i++){
+            heap->free(dsa_get(heap->arr, i));
+        }
+    }
+    dsa_free(heap->arr);
     free(heap);
+}
+
+void heap_print(heap_t* heap){
+    dsa_print(heap->arr);
 }
